@@ -1,0 +1,26 @@
+# Node
+node_modules/
+npm-debug.log
+yarn-error.log
+.env
+.DS_Store
+
+# Build outputs
+/dist
+/build
+coverage/
+
+# IDE / Editor
+.vscode/
+.idea/
+*.iml
+
+# Android / Gradle
+.gradle/
+/local.properties
+**/build/
+app/build/
+*.keystore
+
+# Misc
+*.log

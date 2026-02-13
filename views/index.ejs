@@ -2,21 +2,43 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Real-Time Tracking App</title>
-    <link rel="stylesheet" href="/css/style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" integrity="sha512-h9FcoyWjHcOcmEVkxOfTLnmZFWIH0iZhZT1H2TbOq55xssQGEJHEaIm+PgoUaZbRvQTNTluNOEfb1ZRy6D3BOw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Real-Time Tracker</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <!-- Google Fonts for aesthetics -->
+  <link href="https://fonts.googleapis.com/css2?family=dataset:wght@400;600&family=Outfit:wght@400;700&display=swap"
+    rel="stylesheet">
 </head>
 
 <body>
-    <div id="map"></div>
+  <div class="container landing-container">
+    <h1>Real-Time Location Tracker</h1>
+    <p class="subtitle">Secure, consensual, live location sharing.</p>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-    <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
-    <script src="/js/script.js"></script>
+    <div class="card">
+      <label for="mobile">Enter Mobile Number (Identity Only)</label>
+      <input type="tel" id="mobile" placeholder="+1 234 567 8900" required>
+      <button id="create-session-btn" class="btn-primary">Start Sharing Session</button>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('create-session-btn').addEventListener('click', async () => {
+      const mobile = document.getElementById('mobile').value;
+      if (!mobile) return alert("Please enter a mobile number");
+
+      const res = await fetch('/api/session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mobile })
+      });
+      const data = await res.json();
+      if (data.sessionId) {
+        window.location.href = `/share/${data.sessionId}`;
+      }
+    });
+  </script>
 </body>
-</html>
-
 
 </html>

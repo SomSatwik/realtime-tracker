@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Share Location</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700&display=swap" rel="stylesheet">
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+
+<body>
+    <div class="container share-container">
+        <h1>Share Your Location</h1>
+
+        <div class="card info-card">
+            <p>Share this link with others to let them track you:</p>
+            <div class="link-box">
+                <input type="text" id="share-link" readonly>
+                <button id="copy-btn">Copy</button>
+            </div>
+        </div>
+
+        <div class="status-indicator" id="status-indicator">
+            <span class="dot"></span>
+            <span id="status-text">Ready to share</span>
+        </div>
+
+        <div class="controls">
+            <button id="start-btn" class="btn-primary">Start Sharing Location</button>
+            <button id="stop-btn" class="btn-danger hidden">Stop Sharing</button>
+        </div>
+
+        <div id="log" class="log-box"></div>
+    </div>
+
+    <script>
+        const SESSION_ID = "<%= sessionId %>";
+        const TRAK_URL = window.location.origin + "/track/" + SESSION_ID;
+        document.getElementById("share-link").value = TRAK_URL;
+    </script>
+    <script src="/js/share.js"></script>
+</body>
+
+</html>

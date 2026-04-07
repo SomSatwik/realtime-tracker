@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title><%= busName %> — Student Tracker | GIET University Bus Tracker</title>
+  <meta name="description" content="Track your GIET University bus in real time.">
+  <link rel="stylesheet" href="/css/style.css">
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <script src="/socket.io/socket.io.js"></script>
+
+  <style>
+    .bus-top-pill {
+      position: absolute;
+      top: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1001;
+      background: var(--surface-color);
+      border-radius: 20px;
+      padding: 8px 20px;
+      box-shadow: var(--shadow-elevated);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+    }
+    .bus-pill-name {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    .bus-pill-status {
+      font-size: 12px;
+      font-weight: 400;
+      color: var(--text-secondary);
+    }
+    .bus-pill-dot {
+      width: 7px;
+      height: 7px;
+      background-color: var(--success-color);
+      border-radius: 50%;
+      display: none;
+      animation: alpha-pulse 2s infinite ease-in-out;
+    }
+    .bus-pill-dot.visible {
+      display: inline-block;
+    }
+    @keyframes alpha-pulse {
+      0%   { opacity: 0.4; }
+      50%  { opacity: 1; }
+      100% { opacity: 0.4; }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Map Container -->
+  <div id="map"></div>
+
+  <!-- Floating Top Pill -->
+  <div class="bus-top-pill">
+    <span style="font-size:18px;">🚌</span>
+    <span class="bus-pill-name" id="pill-bus-name"></span>
+    <span class="bus-pill-dot" id="pill-dot"></span>
+    <span class="bus-pill-status" id="pill-status">Waiting...</span>
+  </div>
+
+  <!-- Bottom Sheet -->
+  <div class="bottom-sheet" id="bottom-sheet">
+    <div class="drag-handle"></div>
+
+    <div class="sheet-row">
+      <div class="live-badge headline-text">
+        <div class="live-dot" id="live-dot" style="display:none;"></div>
+        <span id="status-title">Waiting for bus...</span>
+      </div>
+      <div class="caption-text" id="last-updated">--</div>
+    </div>
+
+    <div class="sheet-divider"></div>
+
+    <!-- Animated ETA Row -->
+    <div class="eta-row hidden" id="eta-row">
+      <div class="stat-block" id="eta-block">
+        <div class="stat-value" id="eta-val">--</div>
+        <div class="caption-text">min</div>
+      </div>
+      <div class="stat-block" id="dist-block">
+        <div class="stat-value" id="dist-val">--</div>
+        <div class="caption-text">km</div>
+      </div>
+    </div>
+
+    <div class="sheet-divider" id="eta-divider" style="display:none;"></div>
+
+    <!-- Hint text -->
+    <div class="sheet-row" id="dest-hint">
+      <div class="caption-text" style="width:100%; text-align:center;">Tap anywhere on map to set destination</div>
+    </div>
+
+    <!-- Action Button -->
+    <button id="center-user-btn" class="btn-center-user pressable" disabled>Center on Bus</button>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+  <script>
+    const SESSION_ID = "<%= sessionId %>";
+    const BUS_NAME = "<%= busName %>";
+
+    // Set pill bus name
+    document.getElementById('pill-bus-name').innerText = BUS_NAME;
+
+    const socket = io();
+
+    // Map Initialization
+    const map = L.map('map', { zoomControl: false }).setView([0, 0], 2);
+
+    // CartoDB Light theme
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+      maxZoom: 19
+    }).addTo(map);
+
+    const markers = {};
+
+    // Orange polylines for bus
+    const historyPolyline = L.polyline([], { color: '#FF9500', weight: 3, opacity: 0.5 }).addTo(map);
+    const historyPoints = [];
+
+    let routePolyline = L.polyline([], { color: '#FF3B30', weight: 2, dashArray: '5, 8' }).addTo(map);
+    let destinationMarker = null;
+    let lastKnownPosition = null;
+
+    // Orange bus marker
+    const busMarkerHtml = `<div class="custom-user-marker" style="background-color:#FF9500; box-shadow: 0 2px 8px rgba(255,149,0,0.4);"></div>`;
+    const busIcon = L.divIcon({
+      html: busMarkerHtml,
+      className: '',
+      iconSize: [20, 20],
+      iconAnchor: [10, 10]
+    });
+
+    const destIcon = new L.Icon.Default();
+
+    // UI Elements
+    const liveDot = document.getElementById('live-dot');
+    const statusTitle = document.getElementById('status-title');
+    const lastUpdated = document.getElementById('last-updated');
+    const etaRow = document.getElementById('eta-row');
+    const etaVal = document.getElementById('eta-val');
+    const distVal = document.getElementById('dist-val');
+    const etaDivider = document.getElementById('eta-divider');
+    const destHint = document.getElementById('dest-hint');
+    const centerBtn = document.getElementById('center-user-btn');
+    const pillDot = document.getElementById('pill-dot');
+    const pillStatus = document.getElementById('pill-status');
+
+    let isFollowing = false;
+    let followingTimeout = null;
+
+    // Join Session
+    socket.emit('join-session', SESSION_ID);
+
+    centerBtn.addEventListener('click', () => {
+      isFollowing = true;
+      centerBtn.innerText = 'Following...';
+      centerBtn.style.color = '#000000';
+
+      if (lastKnownPosition) {
+        map.setView([lastKnownPosition.lat, lastKnownPosition.lng], 16, { animate: true });
+      }
+
+      if (followingTimeout) clearTimeout(followingTimeout);
+
+      followingTimeout = setTimeout(() => {
+        isFollowing = false;
+        centerBtn.innerText = 'Center on Bus';
+        centerBtn.style.color = 'var(--accent-color)';
+      }, 5000);
+    });
+
+    // Set Destination on map click
+    map.on('click', function (e) {
+      const { lat, lng } = e.latlng;
+
+      if (destinationMarker) {
+        destinationMarker.setLatLng(e.latlng);
+      } else {
+        destinationMarker = L.marker(e.latlng, { icon: destIcon }).addTo(map);
+        destHint.style.display = 'none';
+        etaDivider.style.display = 'block';
+      }
+
+      if (lastKnownPosition) {
+        getRouteAndEta(lastKnownPosition.lat, lastKnownPosition.lng, lat, lng);
+      }
+    });
+
+    socket.on('receive-location', (data) => {
+      const { id, latitude, longitude } = data;
+
+      lastKnownPosition = { lat: latitude, lng: longitude };
+
+      if (centerBtn.disabled) centerBtn.disabled = false;
+
+      if (isFollowing) {
+        map.setView([latitude, longitude], map.getZoom(), { animate: true });
+      }
+
+      if (markers[id]) {
+        markers[id].setLatLng([latitude, longitude]);
+      } else {
+        markers[id] = L.marker([latitude, longitude], { icon: busIcon }).addTo(map);
+        if (!destinationMarker) {
+          map.setView([latitude, longitude], 16);
+        }
+      }
+
+      historyPoints.push([latitude, longitude]);
+      historyPolyline.setLatLngs(historyPoints);
+
+      // Update bottom sheet
+      liveDot.style.display = 'block';
+      statusTitle.innerText = 'Bus is moving';
+      lastUpdated.innerText = 'Updated just now';
+
+      // Update pill
+      pillDot.classList.add('visible');
+      pillStatus.innerText = 'LIVE';
+      pillStatus.style.color = 'var(--success-color)';
+
+      if (destinationMarker) {
+        const destLatLng = destinationMarker.getLatLng();
+        getRouteAndEta(latitude, longitude, destLatLng.lat, destLatLng.lng);
+      }
+    });
+
+    socket.on('sharing-stopped', () => {
+      liveDot.style.display = 'none';
+      statusTitle.innerText = 'Bus has stopped';
+      statusTitle.style.color = 'var(--text-secondary)';
+      lastUpdated.innerText = '--';
+      pillDot.classList.remove('visible');
+      pillStatus.innerText = 'Stopped';
+      pillStatus.style.color = 'var(--danger-color)';
+    });
+
+    socket.on('user-disconnected', (id) => {
+      if (markers[id]) {
+        map.removeLayer(markers[id]);
+        delete markers[id];
+      }
+      liveDot.style.display = 'none';
+      statusTitle.innerText = 'Bus disconnected';
+      statusTitle.style.color = 'var(--text-secondary)';
+      lastUpdated.innerText = '--';
+      pillDot.classList.remove('visible');
+      pillStatus.innerText = 'Offline';
+      pillStatus.style.color = 'var(--danger-color)';
+    });
+
+    async function getRouteAndEta(startLat, startLng, destLat, destLng) {
+      const url = `https://router.project-osrm.org/route/v1/driving/${startLng},${startLat};${destLng},${destLat}?overview=full&geometries=geojson`;
+
+      try {
+        const response = await fetch(url);
+        const data = await response.json();
+
+        if (data.routes && data.routes.length > 0) {
+          const route = data.routes[0];
+          const coordinates = route.geometry.coordinates;
+          const latLngs = coordinates.map(coord => [coord[1], coord[0]]);
+          routePolyline.setLatLngs(latLngs);
+
+          const durationSeconds = route.duration;
+          const minutes = Math.ceil(durationSeconds / 60);
+          const distanceMeters = route.distance;
+          const distanceKm = (distanceMeters / 1000).toFixed(1);
+
+          etaRow.classList.remove('hidden');
+
+          const el1 = document.getElementById('eta-block');
+          const el2 = document.getElementById('dist-block');
+
+          if (etaVal.innerText !== minutes.toString() || distVal.innerText !== distanceKm.toString()) {
+            el1.classList.add('pop');
+            el2.classList.add('pop');
+            setTimeout(() => {
+              el1.classList.remove('pop');
+              el2.classList.remove('pop');
+            }, 280);
+          }
+
+          etaVal.innerText = minutes;
+          distVal.innerText = distanceKm;
+        }
+      } catch (err) {
+        console.error('Routing Error:', err);
+      }
+    }
+  </script>
+</body>
+
+</html>

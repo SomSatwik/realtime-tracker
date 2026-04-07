@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard — GIET University Bus Tracker</title>
+  <meta name="description" content="Admin dashboard for GIET University Bus Tracker. Manage all bus sessions and live fleet status.">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      background-color: var(--bg-color);
+      padding-bottom: 60px;
+    }
+
+    .admin-header {
+      background: var(--surface-color);
+      border-bottom: 1px solid rgba(0,0,0,0.06);
+      padding: 0 24px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 56px;
+    }
+
+    .admin-header-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .admin-header-time {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .admin-body {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 32px 24px 0;
+    }
+
+    .page-title-block {
+      margin-bottom: 28px;
+    }
+
+    .page-title-block h1 {
+      margin: 0 0 4px;
+    }
+
+    .bus-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+
+    .bus-card {
+      background: var(--surface-color);
+      border-radius: var(--radius-card);
+      padding: 16px;
+      box-shadow: var(--shadow-card);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      transition: box-shadow 280ms ease;
+    }
+
+    .bus-card:hover {
+      box-shadow: var(--shadow-elevated);
+    }
+
+    .bus-card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .bus-route-name {
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--text-primary);
+      flex: 1;
+      margin: 0;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      border-radius: 20px;
+      padding: 3px 10px;
+      font-size: 12px;
+      font-weight: 600;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .status-badge.live {
+      background-color: rgba(52, 199, 89, 0.15);
+      color: var(--success-color);
+    }
+
+    .status-badge.idle {
+      background-color: var(--bg-color);
+      color: var(--text-secondary);
+    }
+
+    .bus-session-id {
+      font-family: monospace;
+      font-size: 12px;
+      color: var(--text-secondary);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .bus-coords {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .bus-card-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .bus-card-actions .btn-pill {
+      flex: 1;
+      text-align: center;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 48px 24px;
+    }
+
+    .empty-state .empty-icon {
+      font-size: 40px;
+      margin-bottom: 12px;
+    }
+
+    .create-section .card {
+      margin-bottom: 0;
+    }
+
+    .success-links {
+      display: none;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .success-links.visible {
+      display: flex;
+    }
+
+    .link-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--bg-color);
+      border-radius: var(--radius-input);
+      padding: 10px 14px;
+      gap: 12px;
+    }
+
+    .link-row-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .link-row-url {
+      font-family: monospace;
+      font-size: 12px;
+      color: var(--text-primary);
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .link-row-copy {
+      background: var(--surface-color);
+      border: none;
+      border-radius: 8px;
+      padding: 5px 10px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--accent-color);
+      cursor: pointer;
+      white-space: nowrap;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Sticky Header -->
+  <div class="admin-header">
+    <div class="admin-header-title">
+      <span>🚌</span>
+      <span>GIET Bus Fleet Dashboard</span>
+    </div>
+    <div class="admin-header-time" id="live-clock"></div>
+  </div>
+
+  <div class="admin-body">
+
+    <!-- Page Title -->
+    <div class="page-title-block fade-in">
+      <h1 class="title-text">GIET Bus Dashboard</h1>
+      <p class="caption-text text-secondary">Live fleet overview</p>
+    </div>
+
+    <!-- Bus Grid -->
+    <div class="bus-grid" id="bus-grid">
+      <!-- Rendered server-side first, then refreshed via polling -->
+    </div>
+
+    <!-- Create New Session -->
+    <div class="create-section">
+      <div class="card">
+        <div class="label-caps text-secondary" style="margin-bottom: 14px;">CREATE BUS SESSION</div>
+        <div class="input-group">
+          <label for="bus-route-input" class="label-caps text-secondary">BUS ROUTE NAME</label>
+          <input
+            type="text"
+            id="bus-route-input"
+            class="apple-input"
+            placeholder="e.g. Route 1 — Main Gate to Hostel Block"
+          >
+        </div>
+        <button id="create-btn" class="btn-primary pressable">Create Session →</button>
+
+        <!-- Success shown after create -->
+        <div class="success-links" id="success-links">
+          <div class="link-row">
+            <span class="link-row-label">🚌 Driver</span>
+            <span class="link-row-url" id="new-driver-url"></span>
+            <button class="link-row-copy pressable" id="copy-new-driver">Copy</button>
+          </div>
+          <div class="link-row">
+            <span class="link-row-label">📍 Student</span>
+            <span class="link-row-url" id="new-student-url"></span>
+            <button class="link-row-copy pressable" id="copy-new-student">Copy</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // ── Clock ──────────────────────────────────────────────
+    function updateClock() {
+      const now = new Date();
+      document.getElementById('live-clock').innerText = now.toLocaleTimeString('en-IN', {
+        hour: '2-digit', minute: '2-digit', second: '2-digit'
+      });
+    }
+    updateClock();
+    setInterval(updateClock, 1000);
+
+    // ── Render Bus Grid ───────────────────────────────────
+    function renderBusGrid(buses) {
+      const grid = document.getElementById('bus-grid');
+      grid.innerHTML = '';
+
+      if (!buses || buses.length === 0) {
+        grid.innerHTML = `
+          <div class="card empty-state" style="grid-column: 1 / -1;">
+            <div class="empty-icon">🚌</div>
+            <p class="caption-text text-secondary">No active bus sessions yet.</p>
+          </div>`;
+        return;
+      }
+
+      buses.forEach(bus => {
+        const isLive = bus.active === true;
+        const coords = bus.lastLocation
+          ? `${bus.lastLocation.latitude.toFixed(4)}°N, ${bus.lastLocation.longitude.toFixed(4)}°E`
+          : 'No location yet';
+
+        const card = document.createElement('div');
+        card.className = 'bus-card fade-in';
+        card.innerHTML = `
+          <div class="bus-card-header">
+            <div class="bus-route-name">${escapeHtml(bus.mobile || 'Unnamed Bus')}</div>
+            <div class="status-badge ${isLive ? 'live' : 'idle'}">
+              ● ${isLive ? 'LIVE' : 'IDLE'}
+            </div>
+          </div>
+          <div class="bus-session-id">${bus.id}</div>
+          <div class="bus-coords caption-text">${coords}</div>
+          <div class="bus-card-actions">
+            <button class="btn-pill pressable" onclick="window.open('/student/${bus.id}','_blank')">View Live</button>
+            <button class="btn-pill pressable" onclick="copyDriverLink('${bus.id}', this)">Copy Driver Link</button>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.appendChild(document.createTextNode(text));
+      return div.innerHTML;
+    }
+
+    function copyDriverLink(sessionId, btn) {
+      const url = window.location.origin + '/driver/' + sessionId;
+      navigator.clipboard.writeText(url).then(() => {
+        const orig = btn.innerText;
+        btn.innerText = 'Copied!';
+        setTimeout(() => btn.innerText = orig, 2000);
+      });
+    }
+
+    // ── Initial server-rendered data ──────────────────────
+    const initialBuses = <%- JSON.stringify(buses) %>;
+    renderBusGrid(initialBuses);
+
+    // ── Poll every 5 seconds ──────────────────────────────
+    const PASS = 'giet2025';
+    setInterval(async () => {
+      try {
+        const res = await fetch(`/api/admin/sessions?pass=${PASS}`);
+        if (res.ok) {
+          const buses = await res.json();
+          renderBusGrid(buses);
+        }
+      } catch (e) {
+        console.error('Polling error:', e);
+      }
+    }, 5000);
+
+    // ── Create Session ────────────────────────────────────
+    document.getElementById('create-btn').addEventListener('click', async () => {
+      const busName = document.getElementById('bus-route-input').value.trim();
+      if (!busName) return alert('Please enter a bus route name.');
+
+      const btn = document.getElementById('create-btn');
+      btn.innerText = 'Creating...';
+      btn.style.pointerEvents = 'none';
+
+      try {
+        const res = await fetch('/api/session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ mobile: busName })
+        });
+        const data = await res.json();
+
+        if (data.sessionId) {
+          const driverUrl = window.location.origin + data.driverUrl;
+          const studentUrl = window.location.origin + data.studentUrl;
+
+          document.getElementById('new-driver-url').innerText = driverUrl;
+          document.getElementById('new-student-url').innerText = studentUrl;
+
+          const successLinks = document.getElementById('success-links');
+          successLinks.classList.add('visible');
+
+          document.getElementById('copy-new-driver').onclick = () => {
+            navigator.clipboard.writeText(driverUrl).then(() => {
+              const b = document.getElementById('copy-new-driver');
+              b.innerText = 'Copied!'; setTimeout(() => b.innerText = 'Copy', 2000);
+            });
+          };
+          document.getElementById('copy-new-student').onclick = () => {
+            navigator.clipboard.writeText(studentUrl).then(() => {
+              const b = document.getElementById('copy-new-student');
+              b.innerText = 'Copied!'; setTimeout(() => b.innerText = 'Copy', 2000);
+            });
+          };
+
+          btn.innerText = 'Create Another →';
+          btn.style.pointerEvents = 'auto';
+          document.getElementById('bus-route-input').value = '';
+
+          // Immediately refresh the grid
+          const refreshRes = await fetch(`/api/admin/sessions?pass=${PASS}`);
+          if (refreshRes.ok) renderBusGrid(await refreshRes.json());
+        }
+      } catch (err) {
+        console.error(err);
+        btn.innerText = 'Create Session →';
+        btn.style.pointerEvents = 'auto';
+        alert('Failed to create session.');
+      }
+    });
+  </script>
+</body>
+
+</html>

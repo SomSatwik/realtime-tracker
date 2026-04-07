@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="shape_extra_small">8dp</dimen>
+    <dimen name="shape_small">10dp</dimen>
+    <dimen name="shape_medium">14dp</dimen>
+    <dimen name="shape_large">16dp</dimen>
+    <dimen name="shape_extra_large">20dp</dimen>
+</resources>

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Share Location - GIET BUS TRACKER</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+
+<body>
+    <div class="share-page">
+        <!-- Navigation Bar -->
+        <div class="nav-bar">
+            <span class="caption-text text-secondary">GIET BUS TRACKING</span>
+        </div>
+
+        <!-- Hero Indicator -->
+        <div class="sharing-indicator-wrapper">
+            <div id="sharing-circle" class="sharing-circle">
+                <!-- Location Pin SVG -->
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                </svg>
+            </div>
+            <div id="status-text" class="status-text headline-text">Ready</div>
+        </div>
+
+        <!-- Share Link Section -->
+        <div class="link-card">
+            <div class="label-caps" style="text-align: left;">TRACKING LINK</div>
+            <span id="share-link-display" class="link-text"></span>
+            
+            <div style="display: flex; justify-content: center; margin-bottom: 16px;">
+                <button id="copy-btn" class="btn-pill pressable">Copy</button>
+                <button id="native-share-btn" class="btn-pill pressable">Share</button>
+            </div>
+
+            <div class="qr-code-wrapper">
+                <img id="qr-code-img" src="" alt="QR Code" />
+            </div>
+        </div>
+
+        <!-- Fading Logs Section -->
+        <div id="log" class="log-section"></div>
+
+        <!-- Primary Action Button -->
+        <div style="margin-top: 24px;">
+            <button id="action-btn" class="btn-action pressable">Start Sharing</button>
+        </div>
+    </div>
+
+    <script>
+        const SESSION_ID = "<%= sessionId %>";
+        const TRACK_URL = window.location.origin + "/track/" + SESSION_ID;
+        
+        // Safely set UI defaults before logic takes over
+        document.getElementById("share-link-display").innerText = TRACK_URL;
+        document.getElementById("qr-code-img").src = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&color=000000&bgcolor=FFFFFF&data=${encodeURIComponent(TRACK_URL)}`;
+    </script>
+    <script src="/js/share.js"></script>
+</body>
+
+</html>

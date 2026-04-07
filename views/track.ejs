@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Track Location - GIET BUS TRACKER</title>
+    <link rel="stylesheet" href="/css/style.css">
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+
+<body>
+    <!-- Map Container -->
+    <div id="map"></div>
+
+    <!-- Apple Maps Style Bottom Sheet -->
+    <div class="bottom-sheet" id="bottom-sheet">
+        <div class="drag-handle"></div>
+        
+        <div class="sheet-row">
+            <div class="live-badge headline-text">
+                <div class="live-dot" id="live-dot" style="display: none;"></div>
+                <span id="status-title">Waiting for updates</span>
+            </div>
+            <div class="caption-text" id="last-updated">--</div>
+        </div>
+        
+        <div class="sheet-divider"></div>
+        
+        <!-- Animated ETA Row -->
+        <div class="eta-row hidden" id="eta-row">
+            <div class="stat-block" id="eta-block">
+                <div class="stat-value" id="eta-val">--</div>
+                <div class="caption-text">min</div>
+            </div>
+            <div class="stat-block" id="dist-block">
+                <div class="stat-value" id="dist-val">--</div>
+                <div class="caption-text">km</div>
+            </div>
+        </div>
+        
+        <div class="sheet-divider" id="eta-divider" style="display: none;"></div>
+        
+        <!-- Hint text -->
+        <div class="sheet-row" id="dest-hint">
+            <div class="caption-text" style="width: 100%; text-align: center;">Tap anywhere on map to set destination</div>
+        </div>
+        
+        <!-- Action Button -->
+        <button id="center-user-btn" class="btn-center-user pressable" disabled>Center on User</button>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+    <script>
+        const SESSION_ID = "<%= sessionId %>";
+    </script>
+    <script src="/js/track.js"></script>
+</body>
+
+</html>

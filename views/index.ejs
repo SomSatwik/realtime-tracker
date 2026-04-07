@@ -2,21 +2,119 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Real-Time Tracking App</title>
-    <link rel="stylesheet" href="/css/style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" integrity="sha512-h9FcoyWjHcOcmEVkxOfTLnmZFWIH0iZhZT1H2TbOq55xssQGEJHEaIm+PgoUaZbRvQTNTluNOEfb1ZRy6D3BOw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GIET University Bus Tracker</title>
+  <meta name="description" content="Track GIET University buses in real time. Know exactly where your bus is before you step out.">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 
 <body>
-    <div id="map"></div>
+  <div class="container landing-page">
+    <div class="app-icon">🚌</div>
+    <h1 class="landing-title title-text">GIET Bus Tracker</h1>
+    <p class="landing-subtitle caption-text text-secondary">Track university buses in real time.</p>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-    <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
-    <script src="/js/script.js"></script>
+    <div class="card" id="create-card">
+      <div class="input-group">
+        <label for="mobile" class="label-caps text-secondary">BUS ROUTE NAME</label>
+        <input type="text" id="mobile" class="apple-input" placeholder="e.g. Route 1 — Main Gate" required>
+      </div>
+      <button id="create-session-btn" class="btn-primary pressable">Create Bus Session →</button>
+    </div>
+
+    <!-- Links shown after session created -->
+    <div class="card hidden" id="links-card">
+      <div class="label-caps text-secondary" style="margin-bottom: 12px;">SESSION CREATED</div>
+      <div class="link-card" style="margin-bottom: 12px;">
+        <div class="label-caps" style="text-align:left; margin-bottom: 6px;">🚌 DRIVER LINK</div>
+        <span id="driver-link-display" class="link-text"></span>
+        <div style="display:flex; justify-content:center; gap:8px;">
+          <button id="copy-driver-btn" class="btn-pill pressable">Copy</button>
+          <a id="open-driver-btn" href="#" target="_blank" class="btn-pill pressable" style="text-decoration:none; display:inline-block; line-height:1.6;">Open</a>
+        </div>
+      </div>
+      <div class="link-card">
+        <div class="label-caps" style="text-align:left; margin-bottom: 6px;">📍 STUDENT LINK</div>
+        <span id="student-link-display" class="link-text"></span>
+        <div style="display:flex; justify-content:center; gap:8px;">
+          <button id="copy-student-btn" class="btn-pill pressable">Copy</button>
+          <a id="open-student-btn" href="#" target="_blank" class="btn-pill pressable" style="text-decoration:none; display:inline-block; line-height:1.6;">Open</a>
+        </div>
+      </div>
+      <button id="create-another-btn" class="btn-primary pressable" style="margin-top:8px;">Create Another →</button>
+    </div>
+
+    <p class="caption-text text-secondary" style="margin-top: 8px; text-align: center;">
+      Admin Dashboard → <a href="/admin?pass=giet2025" style="color: var(--accent-color);">/admin?pass=giet2025</a>
+    </p>
+  </div>
+
+  <script>
+    const createBtn = document.getElementById('create-session-btn');
+    const createCard = document.getElementById('create-card');
+    const linksCard = document.getElementById('links-card');
+
+    createBtn.addEventListener('click', async () => {
+      const mobile = document.getElementById('mobile').value.trim();
+      if (!mobile) return alert("Please enter a bus route name.");
+
+      createBtn.innerHTML = "Creating...";
+      createBtn.style.pointerEvents = "none";
+
+      try {
+        const res = await fetch('/api/session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ mobile })
+        });
+        const data = await res.json();
+
+        if (data.sessionId) {
+          const driverUrl = window.location.origin + data.driverUrl;
+          const studentUrl = window.location.origin + data.studentUrl;
+
+          document.getElementById('driver-link-display').innerText = driverUrl;
+          document.getElementById('student-link-display').innerText = studentUrl;
+          document.getElementById('open-driver-btn').href = driverUrl;
+          document.getElementById('open-student-btn').href = studentUrl;
+
+          createCard.classList.add('hidden');
+          linksCard.classList.remove('hidden');
+          linksCard.classList.add('fade-in');
+
+          document.getElementById('copy-driver-btn').addEventListener('click', () => {
+            navigator.clipboard.writeText(driverUrl).then(() => {
+              const b = document.getElementById('copy-driver-btn');
+              b.innerText = "Copied!"; setTimeout(() => b.innerText = "Copy", 2000);
+            });
+          });
+          document.getElementById('copy-student-btn').addEventListener('click', () => {
+            navigator.clipboard.writeText(studentUrl).then(() => {
+              const b = document.getElementById('copy-student-btn');
+              b.innerText = "Copied!"; setTimeout(() => b.innerText = "Copy", 2000);
+            });
+          });
+        }
+      } catch (err) {
+        console.error(err);
+        createBtn.innerHTML = "Create Bus Session →";
+        createBtn.style.pointerEvents = "auto";
+        alert("Failed to create session.");
+      }
+    });
+
+    document.getElementById('create-another-btn').addEventListener('click', () => {
+      linksCard.classList.add('hidden');
+      createCard.classList.remove('hidden');
+      document.getElementById('mobile').value = '';
+      createBtn.innerHTML = "Create Bus Session →";
+      createBtn.style.pointerEvents = "auto";
+    });
+  </script>
 </body>
-</html>
-
 
 </html>

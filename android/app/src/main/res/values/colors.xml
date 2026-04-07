@@ -1,0 +1,24 @@
+<resources>
+    <!-- Light Theme Tokens -->
+    <color name="md_theme_light_background">#F2F2F7</color>
+    <color name="md_theme_light_surface">#FFFFFF</color>
+    <color name="md_theme_light_primary">#007AFF</color>
+    <color name="md_theme_light_onPrimary">#FFFFFF</color>
+    <color name="md_theme_light_secondary">#34C759</color>
+    <color name="md_theme_light_error">#FF3B30</color>
+    <color name="md_theme_light_onSurface">#000000</color>
+    <color name="md_theme_light_onSurfaceVariant">#8E8E93</color>
+
+    <!-- Dark Theme Tokens -->
+    <color name="md_theme_dark_background">#000000</color>
+    <color name="md_theme_dark_surface">#1C1C1E</color>
+    <color name="md_theme_dark_primary">#0A84FF</color>
+    <color name="md_theme_dark_onPrimary">#FFFFFF</color>
+    <color name="md_theme_dark_secondary">#30D158</color>
+    <color name="md_theme_dark_error">#FF453A</color>
+    <color name="md_theme_dark_onSurface">#FFFFFF</color>
+    <color name="md_theme_dark_onSurfaceVariant">#8E8E93</color>
+    
+    <color name="black">#000000</color>
+    <color name="white">#FFFFFF</color>
+</resources>

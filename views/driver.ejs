@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Driver — <%= busName %> | GIET University Bus Tracker</title>
+  <meta name="description" content="Driver broadcasting page for GIET University Bus Tracker.">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="/socket.io/socket.io.js"></script>
+</head>
+
+<body>
+  <div class="share-page">
+
+    <!-- Navigation Bar -->
+    <div class="nav-bar">
+      <span class="label-caps text-secondary" style="flex:1;">GIET University</span>
+      <span class="caption-text text-secondary" id="bus-name-display"></span>
+    </div>
+
+    <!-- Hero Sharing Indicator -->
+    <div class="sharing-indicator-wrapper">
+      <div id="sharing-circle" class="sharing-circle">
+        <!-- Bus SVG Icon -->
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M4 16c0 .88.39 1.67 1 2.22V20c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h8v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1.78c.61-.55 1-1.34 1-2.22V6c0-3.5-3.58-4-8-4s-8 .5-8 4v10zm3.5 1c-.83 0-1.5-.67-1.5-1.5S6.67 14 7.5 14s1.5.67 1.5 1.5S8.33 17 7.5 17zm9 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm1.5-6H6V6h12v5z"/>
+        </svg>
+      </div>
+      <div id="status-text" class="status-text headline-text">Ready</div>
+      <div id="coords-display" class="caption-text text-secondary" style="margin-top: 8px; text-align: center;"></div>
+    </div>
+
+    <!-- Fading Logs Section -->
+    <div id="log" class="log-section"></div>
+
+    <!-- Primary Action Button -->
+    <div style="margin-top: 24px;">
+      <button id="action-btn" class="btn-action pressable">Start Broadcasting</button>
+    </div>
+
+  </div>
+
+  <script>
+    const SESSION_ID = "<%= sessionId %>";
+    const BUS_NAME = "<%= busName %>";
+
+    // Set UI defaults
+    document.getElementById('bus-name-display').innerText = BUS_NAME;
+
+    const socket = io();
+    const actionBtn = document.getElementById('action-btn');
+    const sharingCircle = document.getElementById('sharing-circle');
+    const statusText = document.getElementById('status-text');
+    const coordsDisplay = document.getElementById('coords-display');
+    const logBox = document.getElementById('log');
+
+    let watchId = null;
+    let isSharing = false;
+
+    // Join the session room
+    socket.emit('join-session', SESSION_ID);
+
+    actionBtn.addEventListener('click', () => {
+      if (isSharing) {
+        stopBroadcasting();
+        socket.emit('stop-sharing', SESSION_ID);
+      } else {
+        startBroadcasting();
+      }
+    });
+
+    function startBroadcasting() {
+      if (!navigator.geolocation) {
+        log('Geolocation is not supported by your browser.');
+        return;
+      }
+
+      log('Requesting GPS access...');
+
+      watchId = navigator.geolocation.watchPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+
+          if (!isSharing) {
+            isSharing = true;
+            sharingCircle.classList.add('active');
+            statusText.innerText = 'Sharing Live';
+            statusText.classList.add('active');
+            statusText.classList.remove('stopped');
+            actionBtn.innerText = 'Stop Broadcasting';
+            actionBtn.classList.add('active');
+            log('Broadcasting started.');
+          }
+
+          coordsDisplay.innerText = `${latitude.toFixed(5)}°N, ${longitude.toFixed(5)}°E`;
+          log(`Sent: ${latitude.toFixed(5)}, ${longitude.toFixed(5)}`);
+
+          socket.emit('send-location', {
+            sessionId: SESSION_ID,
+            latitude,
+            longitude
+          });
+        },
+        (error) => {
+          let msg = 'GPS Error: ';
+          switch (error.code) {
+            case error.PERMISSION_DENIED: msg += 'Permission denied.'; break;
+            case error.POSITION_UNAVAILABLE: msg += 'Location unavailable.'; break;
+            case error.TIMEOUT: msg += 'Request timed out.'; break;
+            default: msg += 'Unknown error.'; break;
+          }
+          log(msg);
+          stopBroadcasting();
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 5000,
+          maximumAge: 0
+        }
+      );
+    }
+
+    function stopBroadcasting() {
+      if (watchId !== null) {
+        navigator.geolocation.clearWatch(watchId);
+        watchId = null;
+      }
+
+      isSharing = false;
+
+      sharingCircle.classList.remove('active');
+      statusText.innerText = 'Stopped';
+      statusText.classList.remove('active');
+      statusText.classList.add('stopped');
+
+      actionBtn.innerText = 'Start Broadcasting';
+      actionBtn.classList.remove('active');
+
+      coordsDisplay.innerText = '';
+      log('Broadcasting stopped.');
+    }
+
+    function log(msg) {
+      const p = document.createElement('div');
+      p.className = 'log-entry caption-text fade-in';
+      p.innerText = msg;
+      logBox.appendChild(p);
+      while (logBox.children.length > 5) {
+        logBox.removeChild(logBox.firstChild);
+      }
+    }
+  </script>
+</body>
+
+</html>

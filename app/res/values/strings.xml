@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">RealTime Tracker</string>
+    <string name="eta_label">ETA: Calculating...</string>
+    <string name="permission_rationale">Location permission is required to track your movement and calculate ETA.</string>
+</resources>

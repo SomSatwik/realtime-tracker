@@ -2,7 +2,11 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+<<<<<<< HEAD
       <module fileurl="file://$PROJECT_DIR$/.idea/REALTIME_TRACKER.iml" filepath="$PROJECT_DIR$/.idea/REALTIME_TRACKER.iml" />
+=======
+      <module fileurl="file://$PROJECT_DIR$/REALTIME_TRACKER.iml" filepath="$PROJECT_DIR$/REALTIME_TRACKER.iml" />
+>>>>>>> 05490fea98ab5925d5436410e1761ffbf758c3bb
     </modules>
   </component>
 </project>

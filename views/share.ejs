@@ -3,16 +3,24 @@
 
 <head>
     <meta charset="UTF-8">
+<<<<<<< HEAD
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Share Location - GIET BUS TRACKER</title>
     <link rel="stylesheet" href="/css/style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+=======
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Share Location</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700&display=swap" rel="stylesheet">
+>>>>>>> 05490fea98ab5925d5436410e1761ffbf758c3bb
     <script src="/socket.io/socket.io.js"></script>
 </head>
 
 <body>
+<<<<<<< HEAD
     <div class="share-page">
         <!-- Navigation Bar -->
         <div class="nav-bar">
@@ -52,15 +60,44 @@
         <div style="margin-top: 24px;">
             <button id="action-btn" class="btn-action pressable">Start Sharing</button>
         </div>
+=======
+    <div class="container share-container">
+        <h1>Share Your Location</h1>
+
+        <div class="card info-card">
+            <p>Share this link with others to let them track you:</p>
+            <div class="link-box">
+                <input type="text" id="share-link" readonly>
+                <button id="copy-btn">Copy</button>
+            </div>
+        </div>
+
+        <div class="status-indicator" id="status-indicator">
+            <span class="dot"></span>
+            <span id="status-text">Ready to share</span>
+        </div>
+
+        <div class="controls">
+            <button id="start-btn" class="btn-primary">Start Sharing Location</button>
+            <button id="stop-btn" class="btn-danger hidden">Stop Sharing</button>
+        </div>
+
+        <div id="log" class="log-box"></div>
+>>>>>>> 05490fea98ab5925d5436410e1761ffbf758c3bb
     </div>
 
     <script>
         const SESSION_ID = "<%= sessionId %>";
+<<<<<<< HEAD
         const TRACK_URL = window.location.origin + "/track/" + SESSION_ID;
         
         // Safely set UI defaults before logic takes over
         document.getElementById("share-link-display").innerText = TRACK_URL;
         document.getElementById("qr-code-img").src = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&color=000000&bgcolor=FFFFFF&data=${encodeURIComponent(TRACK_URL)}`;
+=======
+        const TRAK_URL = window.location.origin + "/track/" + SESSION_ID;
+        document.getElementById("share-link").value = TRAK_URL;
+>>>>>>> 05490fea98ab5925d5436410e1761ffbf758c3bb
     </script>
     <script src="/js/share.js"></script>
 </body>

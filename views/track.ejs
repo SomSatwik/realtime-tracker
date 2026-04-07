@@ -3,6 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
+<<<<<<< HEAD
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Track Location - GIET BUS TRACKER</title>
     <link rel="stylesheet" href="/css/style.css">
@@ -15,10 +16,20 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     
+=======
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Track Location</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700&display=swap" rel="stylesheet">
+>>>>>>> 05490fea98ab5925d5436410e1761ffbf758c3bb
     <script src="/socket.io/socket.io.js"></script>
 </head>
 
 <body>
+<<<<<<< HEAD
     <!-- Map Container -->
     <div id="map"></div>
 
@@ -60,6 +71,18 @@
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+=======
+    <div id="map"></div>
+
+    <div class="overlay-info">
+        <h3>Tracking User</h3>
+        <p id="status">Waiting for updates...</p>
+        <p id="eta" class="hidden">ETA: <span id="eta-val">-- mins</span></p>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+>>>>>>> 05490fea98ab5925d5436410e1761ffbf758c3bb
     <script>
         const SESSION_ID = "<%= sessionId %>";
     </script>

@@ -8,10 +8,7 @@ const { v4: uuidv4 } = require('uuid');
 
 // Use in-memory store for demo simplicity. In production, use Redis/MongoDB.
 const sessions = {};
-<<<<<<< HEAD
 const socketSessionMap = {}; // Maps socket.id -> sessionId
-=======
->>>>>>> 05490fea98ab5925d5436410e1761ffbf758c3bb
 
 const server = http.createServer(app);
 const io = socketio(server);
@@ -31,7 +28,6 @@ app.get("/", function (req, res) {
 // 2. Create Session
 app.post("/api/session", (req, res) => {
   const mobile = req.body.mobile;
-<<<<<<< HEAD
   const sessionId = uuidv4();
   sessions[sessionId] = { mobile, active: false };
 
@@ -52,16 +48,6 @@ app.post("/api/session", (req, res) => {
 });
 
 // 3. Sharer Interface (Mobile) — EXISTING, DO NOT REMOVE
-=======
-  // In a real app, we'd verify the mobile number or send an SMS.
-  // Here, we just generate a session ID.
-  const sessionId = uuidv4();
-  sessions[sessionId] = { mobile, active: false };
-  res.json({ sessionId });
-});
-
-// 3. Sharer Interface (Mobile)
->>>>>>> 05490fea98ab5925d5436410e1761ffbf758c3bb
 app.get("/share/:id", (req, res) => {
   const sessionId = req.params.id;
   if (!sessions[sessionId]) {
@@ -70,11 +56,7 @@ app.get("/share/:id", (req, res) => {
   res.render("share", { sessionId });
 });
 
-<<<<<<< HEAD
 // 4. Viewer Interface (Map) — EXISTING, DO NOT REMOVE
-=======
-// 4. Viewer Interface (Map)
->>>>>>> 05490fea98ab5925d5436410e1761ffbf758c3bb
 app.get("/track/:id", (req, res) => {
   const sessionId = req.params.id;
   if (!sessions[sessionId]) {
@@ -83,7 +65,6 @@ app.get("/track/:id", (req, res) => {
   res.render("track", { sessionId });
 });
 
-<<<<<<< HEAD
 // 5. Driver Broadcasting Page — NEW
 app.get("/driver/:id", (req, res) => {
   const sessionId = req.params.id;
@@ -120,8 +101,6 @@ app.get("/api/admin/sessions", (req, res) => {
   res.json(buses);
 });
 
-=======
->>>>>>> 05490fea98ab5925d5436410e1761ffbf758c3bb
 // --- Socket.io ---
 
 io.on("connection", function (socket) {
@@ -129,18 +108,11 @@ io.on("connection", function (socket) {
   // User joins a session room
   socket.on("join-session", (sessionId) => {
     socket.join(sessionId);
-<<<<<<< HEAD
     socketSessionMap[socket.id] = sessionId;
     console.log(`Socket ${socket.id} joined session ${sessionId}`);
   });
 
   // Sharer/Driver sends location
-=======
-    console.log(`Socket ${socket.id} joined session ${sessionId}`);
-  });
-
-  // Sharer sends location
->>>>>>> 05490fea98ab5925d5436410e1761ffbf758c3bb
   socket.on("send-location", function (data) {
     const { sessionId, latitude, longitude } = data;
 
@@ -149,11 +121,6 @@ io.on("connection", function (socket) {
       sessions[sessionId].lastLocation = { latitude, longitude };
     }
 
-<<<<<<< HEAD
-=======
-    // Broadcast to everyone in the room (including the sender, though usually sender doesn't need it)
-    // Better: Broadcast to others in the room
->>>>>>> 05490fea98ab5925d5436410e1761ffbf758c3bb
     socket.to(sessionId).emit("receive-location", { id: socket.id, ...data });
   });
 
@@ -164,7 +131,6 @@ io.on("connection", function (socket) {
   });
 
   socket.on("disconnect", function () {
-<<<<<<< HEAD
     console.log("User disconnected:", socket.id);
     const sessionId = socketSessionMap[socket.id];
 
@@ -172,10 +138,6 @@ io.on("connection", function (socket) {
       delete socketSessionMap[socket.id];
       socket.to(sessionId).emit("user-disconnected", socket.id);
     }
-=======
-    console.log("User disconnected");
-    // Could handle clean up/notify disconnect if we mapped socket.id to session
->>>>>>> 05490fea98ab5925d5436410e1761ffbf758c3bb
   });
 });
 

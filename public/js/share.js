@@ -1,5 +1,4 @@
 const socket = io();
-<<<<<<< HEAD
 
 const actionBtn = document.getElementById("action-btn");
 const sharingCircle = document.getElementById("sharing-circle");
@@ -10,22 +9,11 @@ const nativeShareBtn = document.getElementById("native-share-btn");
 
 let watchId = null;
 let isSharing = false;
-=======
-const startBtn = document.getElementById("start-btn");
-const stopBtn = document.getElementById("stop-btn");
-const statusIndicator = document.getElementById("status-indicator");
-const statusText = document.getElementById("status-text");
-const logBox = document.getElementById("log");
-const copyBtn = document.getElementById("copy-btn");
-
-let watchId = null;
->>>>>>> 05490fea98ab5925d5436410e1761ffbf758c3bb
 
 // Join the session room for updates/control
 socket.emit("join-session", SESSION_ID);
 
 copyBtn.addEventListener("click", () => {
-<<<<<<< HEAD
     navigator.clipboard.writeText(TRACK_URL).then(() => {
         const originalText = copyBtn.innerText;
         copyBtn.innerText = "Copied!";
@@ -38,7 +26,7 @@ nativeShareBtn.addEventListener("click", async () => {
         try {
             await navigator.share({
                 title: 'Track Me Live',
-                text: 'Follow my live location on GhostTrack',
+                text: 'Follow my live location on GIET Bus Tracker',
                 url: TRACK_URL,
             });
             log("Shared successfully");
@@ -60,16 +48,6 @@ actionBtn.addEventListener("click", () => {
 });
 
 function startSharing() {
-=======
-    const copyText = document.getElementById("share-link");
-    copyText.select();
-    document.execCommand("copy");
-    copyBtn.innerText = "Copied!";
-    setTimeout(() => copyBtn.innerText = "Copy", 2000);
-});
-
-startBtn.addEventListener("click", () => {
->>>>>>> 05490fea98ab5925d5436410e1761ffbf758c3bb
     if (!navigator.geolocation) {
         log("Geolocation is not supported by your browser.");
         return;
@@ -82,7 +60,6 @@ startBtn.addEventListener("click", () => {
             const { latitude, longitude } = position.coords;
 
             // UI Updates
-<<<<<<< HEAD
             if (!isSharing) {
                 isSharing = true;
                 sharingCircle.classList.add("active");
@@ -93,12 +70,6 @@ startBtn.addEventListener("click", () => {
                 actionBtn.innerText = "Stop Sharing";
                 actionBtn.classList.add("active");
             }
-=======
-            statusIndicator.classList.add("status-active");
-            statusText.innerText = "Sharing Live Location";
-            startBtn.classList.add("hidden");
-            stopBtn.classList.remove("hidden");
->>>>>>> 05490fea98ab5925d5436410e1761ffbf758c3bb
 
             log(`Sent: ${latitude.toFixed(5)}, ${longitude.toFixed(5)}`);
 
@@ -126,24 +97,13 @@ startBtn.addEventListener("click", () => {
             maximumAge: 0
         }
     );
-<<<<<<< HEAD
 }
-=======
-});
-
-stopBtn.addEventListener("click", () => {
-    stopSharing();
-    // Notify server/viewers
-    socket.emit("stop-sharing", SESSION_ID);
-});
->>>>>>> 05490fea98ab5925d5436410e1761ffbf758c3bb
 
 function stopSharing() {
     if (watchId !== null) {
         navigator.geolocation.clearWatch(watchId);
         watchId = null;
     }
-<<<<<<< HEAD
     
     isSharing = false;
     
@@ -155,20 +115,13 @@ function stopSharing() {
     actionBtn.innerText = "Start Sharing";
     actionBtn.classList.remove("active");
     
-=======
-    statusIndicator.classList.remove("status-active");
-    statusText.innerText = "Sharing Stopped";
-    startBtn.classList.remove("hidden");
-    stopBtn.classList.add("hidden");
->>>>>>> 05490fea98ab5925d5436410e1761ffbf758c3bb
     log("Stopped sharing.");
 }
 
 function log(msg) {
     const p = document.createElement("div");
-<<<<<<< HEAD
     p.className = "log-entry caption-text fade-in";
-    p.innerText = msg; // Just the message, no timestamp for cleaner look like iMessage
+    p.innerText = msg;
     
     logBox.appendChild(p);
     
@@ -177,9 +130,3 @@ function log(msg) {
         logBox.removeChild(logBox.firstChild);
     }
 }
-
-=======
-    p.innerText = `${new Date().toLocaleTimeString()}: ${msg}`;
-    logBox.prepend(p);
-}
->>>>>>> 05490fea98ab5925d5436410e1761ffbf758c3bb

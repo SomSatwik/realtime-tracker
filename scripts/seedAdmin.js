@@ -9,9 +9,9 @@ const mongoose = require('mongoose');
 const User = require('../models/User');
 
 async function createAdmin() {
-  const uri = process.env.MONGODB_URI;
+  const uri = process.env.MONGODB_URI || process.env.MONGO_URL;
   if (!uri) {
-    console.error('MONGODB_URI not defined in .env');
+    console.error('MONGODB_URI (or MONGO_URL) not defined in .env');
     process.exit(1);
   }
   await mongoose.connect(uri);

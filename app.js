@@ -5,18 +5,39 @@ const path = require("path");
 const http = require("http");
 const socketio = require("socket.io");
 const { v4: uuidv4 } = require('uuid');
+// New imports
+const connectDB = require('./config/db');
+const cookieParser = require('cookie-parser');
+const { authenticateJWT, authorizeRoles } = require('./utils/auth');
 
 // Use in-memory store for demo simplicity. In production, use Redis/MongoDB.
 const sessions = {};
 const socketSessionMap = {}; // Maps socket.id -> sessionId
+// Initialise MongoDB connection
+connectDB().catch(err => {
+  console.error('MongoDB connection error:', err);
+  process.exit(1);
+});
+app.use(cookieParser());
 
 const server = http.createServer(app);
 const io = socketio(server);
 
 app.set("view engine", "ejs");
+// Middleware
 app.use(express.static(path.join(__dirname, "public")));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
+
+// Make io accessible to routes
+app.set('io', io);
+
+// Register auth routes
+app.use('/auth/student', require('./routes/auth/student'));
+app.use('/auth/driver', require('./routes/auth/driver'));
+// (admin routes will be added later)
+
 
 // --- Routes ---
 

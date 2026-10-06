@@ -2,13 +2,18 @@ package com.ghosttrack.app.ui.auth
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.ghosttrack.app.data.local.TokenStore
 import com.ghosttrack.app.data.model.User
 import com.ghosttrack.app.data.repository.AuthRepository
 import com.ghosttrack.app.data.repository.AuthResult
+import com.ghosttrack.app.di.AppModule
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -21,11 +26,26 @@ sealed class AuthUiState {
 
 @HiltViewModel
 class AuthViewModel @Inject constructor(
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    private val tokenStore: TokenStore
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<AuthUiState>(AuthUiState.Idle)
     val uiState: StateFlow<AuthUiState> = _uiState.asStateFlow()
+
+    val currentServerUrl: StateFlow<String> = tokenStore.serverUrlFlow
+        .map { it ?: AppModule.DEFAULT_BASE_URL }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = AppModule.DEFAULT_BASE_URL
+        )
+
+    fun setServerUrl(url: String) {
+        viewModelScope.launch {
+            tokenStore.saveServerUrl(url.trim())
+        }
+    }
 
     fun resetState() {
         _uiState.value = AuthUiState.Idle

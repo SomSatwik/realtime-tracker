@@ -1,6 +1,8 @@
 package com.ghosttrack.app.ui.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -68,7 +70,11 @@ fun AppNavHost() {
 
         // 2. Role Select Screen
         composable(Screen.RoleSelect.route) {
+            val authViewModel: AuthViewModel = hiltViewModel()
+            val currentServer by authViewModel.currentServerUrl.collectAsState()
             RoleSelectScreen(
+                currentServerUrl = currentServer,
+                onUpdateServerUrl = { authViewModel.setServerUrl(it) },
                 onSelectStudent = { navController.navigate(Screen.StudentLogin.route) },
                 onSelectDriver = { navController.navigate(Screen.DriverLogin.route) },
                 onSelectAdmin = { navController.navigate(Screen.AdminLogin.route) }

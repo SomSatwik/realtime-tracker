@@ -4,6 +4,7 @@ import android.content.Context
 import com.ghosttrack.app.data.local.TokenStore
 import com.ghosttrack.app.data.remote.ApiService
 import com.ghosttrack.app.data.remote.AuthInterceptor
+import com.ghosttrack.app.data.remote.DynamicHostInterceptor
 import com.ghosttrack.app.data.remote.SocketManager
 import dagger.Module
 import dagger.Provides
@@ -21,8 +22,10 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object AppModule {
 
-    // TODO: Update this to your actual deployed Render URL
-    private const val BASE_URL = "https://realtime-tracker-jvav.onrender.com"
+    // Default fallback (can be overridden via in-app Server Settings dialog)
+    // 10.0.2.2 points to localhost from Android Emulator.
+    // Real devices can switch to http://10.62.218.137:4000/ or https://your-app.onrender.com
+    const val DEFAULT_BASE_URL = "http://10.0.2.2:4000/"
 
     @Provides
     @Singleton
@@ -37,6 +40,7 @@ object AppModule {
             level = HttpLoggingInterceptor.Level.BODY
         }
         return OkHttpClient.Builder()
+            .addInterceptor(DynamicHostInterceptor(tokenStore))
             .addInterceptor(AuthInterceptor(tokenStore))
             .addInterceptor(logging)
             .connectTimeout(30, TimeUnit.SECONDS)
@@ -49,7 +53,7 @@ object AppModule {
     @Singleton
     fun provideRetrofit(client: OkHttpClient): Retrofit {
         return Retrofit.Builder()
-            .baseUrl(BASE_URL)
+            .baseUrl(DEFAULT_BASE_URL)
             .client(client)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
@@ -63,7 +67,7 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideSocketManager(): SocketManager {
-        return SocketManager(BASE_URL)
+    fun provideSocketManager(tokenStore: TokenStore): SocketManager {
+        return SocketManager(tokenStore, DEFAULT_BASE_URL)
     }
 }

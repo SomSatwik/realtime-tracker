@@ -1,5 +1,6 @@
 package com.ghosttrack.app.data.remote
 
+import com.ghosttrack.app.data.local.TokenStore
 import io.socket.client.IO
 import io.socket.client.Socket
 import kotlinx.coroutines.channels.awaitClose
@@ -7,6 +8,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.runBlocking
 import org.json.JSONObject
 import java.net.URI
 
@@ -17,7 +19,7 @@ data class LocationUpdate(
     val longitude: Double
 )
 
-class SocketManager(private val baseUrl: String) {
+class SocketManager(private val tokenStore: TokenStore, private val defaultBaseUrl: String) {
 
     private var socket: Socket? = null
     private val _connectionState = MutableStateFlow(false)
@@ -26,6 +28,8 @@ class SocketManager(private val baseUrl: String) {
     fun connect() {
         if (socket?.connected() == true) return
         try {
+            val rawUrl = runBlocking { tokenStore.getServerUrl() }?.takeIf { it.isNotBlank() } ?: defaultBaseUrl
+            val cleanUrl = rawUrl.trim().removeSuffix("/")
             val options = IO.Options().apply {
                 forceNew = true
                 reconnection = true
@@ -34,7 +38,7 @@ class SocketManager(private val baseUrl: String) {
                 reconnectionDelayMax = 5000
                 transports = arrayOf("websocket", "polling")
             }
-            socket = IO.socket(URI.create(baseUrl), options)
+            socket = IO.socket(URI.create(cleanUrl), options)
             socket?.on(Socket.EVENT_CONNECT) { _connectionState.value = true }
             socket?.on(Socket.EVENT_DISCONNECT) { _connectionState.value = false }
             socket?.on(Socket.EVENT_CONNECT_ERROR) { _connectionState.value = false }

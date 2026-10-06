@@ -18,16 +18,19 @@ class TokenStore(private val context: Context) {
         val USER_NAME_KEY = stringPreferencesKey("user_name")
         val USER_EMAIL_KEY = stringPreferencesKey("user_email")
         val USER_ROLE_KEY = stringPreferencesKey("user_role")
+        val SERVER_URL_KEY = stringPreferencesKey("server_url")
     }
 
     val tokenFlow: Flow<String?> = context.dataStore.data.map { it[TOKEN_KEY] }
     val userRoleFlow: Flow<String?> = context.dataStore.data.map { it[USER_ROLE_KEY] }
     val userNameFlow: Flow<String?> = context.dataStore.data.map { it[USER_NAME_KEY] }
+    val serverUrlFlow: Flow<String?> = context.dataStore.data.map { it[SERVER_URL_KEY] }
 
     suspend fun getToken(): String? = context.dataStore.data.first()[TOKEN_KEY]
     suspend fun getRole(): String? = context.dataStore.data.first()[USER_ROLE_KEY]
     suspend fun getUserName(): String? = context.dataStore.data.first()[USER_NAME_KEY]
     suspend fun getUserId(): String? = context.dataStore.data.first()[USER_ID_KEY]
+    suspend fun getServerUrl(): String? = context.dataStore.data.first()[SERVER_URL_KEY]
 
     suspend fun saveAuthData(token: String, user: com.ghosttrack.app.data.model.User) {
         context.dataStore.edit { prefs ->
@@ -39,7 +42,19 @@ class TokenStore(private val context: Context) {
         }
     }
 
+    suspend fun saveServerUrl(url: String) {
+        context.dataStore.edit { prefs ->
+            prefs[SERVER_URL_KEY] = url
+        }
+    }
+
     suspend fun clear() {
-        context.dataStore.edit { it.clear() }
+        context.dataStore.edit { prefs ->
+            val savedServer = prefs[SERVER_URL_KEY]
+            prefs.clear()
+            if (savedServer != null) {
+                prefs[SERVER_URL_KEY] = savedServer
+            }
+        }
     }
 }

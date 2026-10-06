@@ -52,6 +52,10 @@ app.use('/student', require('./routes/student/dashboard'));
 app.use('/driver', require('./routes/driver/dashboard'));
 app.use('/admin', require('./routes/admin/dashboard'));
 
+app.use('/api/auth', require('./routes/api/auth'));
+app.use('/api/sessions', require('./routes/api/sessions'));
+app.use('/api/admin', require('./routes/api/admin'));
+
 
 
 // --- Routes ---

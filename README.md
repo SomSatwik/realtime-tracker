@@ -85,12 +85,59 @@ Behavior:
 
 ---
 
-## Notes & TODO (recommended improvements)
+## Production Deployment Guide
 
-- Persist sessions in a DB (Mongo/Redis) instead of in-memory store.
-- Add authentication and expiring session links.
-- Rate-limit / secure socket events.
-- Optionally add server-side routing/directions (replace OSRM public service with own instance or paid provider).
+### Option 1: Deploy on Render (Recommended)
+
+1. **Push your code to GitHub**:
+   Ensure your latest commits are pushed to your remote repository.
+
+2. **Database (MongoDB Atlas)**:
+   - Create a free cluster at [mongodb.com/atlas](https://www.mongodb.com/atlas).
+   - Under **Database Access**, create a database user and password.
+   - Under **Network Access**, add `0.0.0.0/0` (allow connections from anywhere) so Render can reach the cluster.
+   - Click **Connect** → **Drivers** (Node.js) and copy your connection string (`mongodb+srv://...`).
+
+3. **Deploy with Blueprint / Render Web Service**:
+   - Go to [dashboard.render.com](https://dashboard.render.com) and click **New +** → **Blueprint** (or **Web Service**).
+   - Connect this repository.
+   - If using **Web Service** manually:
+     - **Runtime**: `Node`
+     - **Build Command**: `npm install`
+     - **Start Command**: `npm start`
+   - Add the following **Environment Variables**:
+     - `PORT`: `10000` (or leave default assigned by Render)
+     - `MONGODB_URI`: Your MongoDB Atlas connection URI
+     - `JWT_SECRET`: A long random secret string (e.g. `openssl rand -hex 32`)
+
+4. **Seed the Initial Admin Account**:
+   - In Render, navigate to your web service and open the **Shell** tab.
+   - Run:
+     ```bash
+     npm run seed:admin
+     ```
+   - Default admin credentials:
+     - **Email**: `admin@example.com`
+     - **Password**: `ChangeMe123!`
+
+---
+
+### Option 2: Deploy on Railway
+
+1. Go to [railway.app](https://railway.app) → **New Project** → **Deploy from GitHub repo**.
+2. Add a **MongoDB** plugin directly inside Railway, or set `MONGODB_URI` pointing to Atlas in Variables.
+3. Add `JWT_SECRET` in **Variables**.
+4. Railway will automatically detect `npm start` and run the application.
+
+---
+
+## Environment Variables Reference
+
+| Variable | Description | Example / Default |
+|---|---|---|
+| `PORT` | Listening port for Express & Socket.IO | `4000` (Local) / `10000` (Render) |
+| `MONGODB_URI` | MongoDB connection string (Atlas or local) | `mongodb+srv://user:pass@cluster.mongodb.net/tracker?retryWrites=true&w=majority` |
+| `JWT_SECRET` | Secret key used to sign authentication cookies | `your_secret_random_token_key` |
 
 ---
 
@@ -107,8 +154,9 @@ This repository is provided as-is. Add a LICENSE file if you want to set an expl
 ---
 
 Included in this repo:
-- `.env.example` — example environment variables (PORT=4000)
+- `.env.example` — example environment variables
+- `render.yaml` — Render infrastructure blueprint
 - `.gitignore` — ignores node_modules, Android/IDE files, and secrets
 - `CONTRIBUTING.md` — short contribution guidelines
 
-The web server runs with `node app.js` and defaults to port `4000` (or set PORT in `.env`). 
+The web server runs with `npm start` (defaults to port `4000` locally, or dynamically assigns `PORT` on cloud platforms). 

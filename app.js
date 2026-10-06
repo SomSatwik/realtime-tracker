@@ -24,8 +24,14 @@ app.use(cookieParser());
 // expose sessions object for routes
 app.set('sessions', sessions);
 
+app.set("trust proxy", 1);
 const server = http.createServer(app);
-const io = socketio(server);
+const io = socketio(server, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"]
+  }
+});
 
 app.set("view engine", "ejs");
 // Middleware

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Student Dashboard — GIET Bus Tracker</title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <div class="container landing-page">
+    <div class="app-icon">🎓</div>
+    <h1 class="landing-title title-text">Student Portal</h1>
+    <p class="landing-subtitle caption-text text-secondary">Track active college buses in real time</p>
+
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: var(--space-md);">
+        <div>
+          <h2 class="headline-text" style="margin:0;">Active Buses</h2>
+          <span class="caption-text text-secondary">Welcome, <%= user.name || 'Student' %></span>
+        </div>
+        <span style="background: rgba(0, 122, 255, 0.12); color: var(--accent-color); font-size:12px; font-weight:700; padding: 4px 10px; border-radius: 20px;">
+          <%= sessions.length %> ACTIVE
+        </span>
+      </div>
+
+      <% if (sessions.length === 0) { %>
+        <div style="text-align: center; padding: 32px 16px; background: var(--bg-color); border-radius: var(--radius-input); margin-bottom: var(--space-md);">
+          <div style="font-size: 32px; margin-bottom: 8px;">📭</div>
+          <p class="body-text" style="margin:0; font-weight:600;">No buses live right now</p>
+          <p class="caption-text text-secondary" style="margin:4px 0 0;">Drivers will appear here when they start broadcasting.</p>
+        </div>
+      <% } else { %>
+        <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: var(--space-md);">
+          <% sessions.forEach(function(s) { %>
+            <div style="background: var(--bg-color); border-radius: var(--radius-input); padding: 14px; border: 1px solid rgba(0,0,0,0.04);">
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px;">
+                <div>
+                  <div class="body-text" style="font-weight: 600; color: var(--text-primary);">
+                    🚍 <%= s.routeInfo || 'Campus Shuttle' %>
+                  </div>
+                  <div class="caption-text text-secondary">
+                    Driver: <%= (s.driver && s.driver.name) || 'Assigned Driver' %>
+                  </div>
+                </div>
+                <span style="background: rgba(52, 199, 89, 0.15); color: var(--success-color); font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 12px;">LIVE</span>
+              </div>
+              <a href="/track/<%= s.socketRoomId %>" class="btn-primary pressable" style="display: block; text-align: center; text-decoration: none; height: 42px; line-height: 42px; font-size: 14px; margin-top: 10px;">
+                Track Live Map →
+              </a>
+            </div>
+          <% }) %>
+        </div>
+      <% } %>
+
+      <hr class="sheet-divider" style="margin: var(--space-md) 0;" />
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <a href="/" class="caption-text text-secondary">Home</a>
+        <a href="/auth/student/login" class="caption-text text-secondary" style="color: var(--danger-color);">Logout</a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

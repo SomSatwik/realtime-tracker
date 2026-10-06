@@ -19,6 +19,16 @@
 </head>
 
 <body>
+    <!-- Floating Back & Bus Header -->
+    <div style="position: absolute; top: 16px; left: 16px; right: 16px; z-index: 1001; display: flex; justify-content: space-between; align-items: center; pointer-events: none;">
+        <a href="/student/dashboard" class="pressable" style="pointer-events: auto; background: var(--surface-color); color: var(--text-primary); text-decoration: none; font-size: 14px; font-weight: 600; padding: 8px 14px; border-radius: 20px; box-shadow: var(--shadow-card); display: flex; align-items: center; gap: 6px;">
+            ← Back
+        </a>
+        <div style="background: var(--surface-color); padding: 8px 16px; border-radius: 20px; box-shadow: var(--shadow-card); font-size: 13px; font-weight: 600; color: var(--text-primary);">
+            🚍 Live Bus Tracker
+        </div>
+    </div>
+
     <!-- Map Container -->
     <div id="map"></div>
 

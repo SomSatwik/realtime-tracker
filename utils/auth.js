@@ -10,8 +10,13 @@ function generateToken(user) {
 function authenticateJWT(req, res, next) {
   const token = req.cookies?.token || req.headers.authorization?.split(' ')[1];
   if (!token) {
-    // redirect to a generic login page – each role can also have its own
-    return res.redirect('/auth/login');
+    // Determine which role login to redirect to based on requested path
+    const path = req.path;
+    let loginPath = '/auth/student/login'; // default
+    if (path.startsWith('/driver')) loginPath = '/auth/driver/login';
+    else if (path.startsWith('/admin')) loginPath = '/auth/admin/login';
+    else if (path.startsWith('/student')) loginPath = '/auth/student/login';
+    return res.redirect(loginPath);
   }
   try {
     const payload = jwt.verify(token, JWT_SECRET);
@@ -19,7 +24,13 @@ function authenticateJWT(req, res, next) {
     next();
   } catch (err) {
     console.error('JWT verification error', err);
-    return res.clearCookie('token').redirect('/auth/login');
+    // Clear invalid token and redirect to appropriate login
+    const path = req.path;
+    let loginPath = '/auth/student/login';
+    if (path.startsWith('/driver')) loginPath = '/auth/driver/login';
+    else if (path.startsWith('/admin')) loginPath = '/auth/admin/login';
+    else if (path.startsWith('/student')) loginPath = '/auth/student/login';
+    return res.clearCookie('token').redirect(loginPath);
   }
 }
 

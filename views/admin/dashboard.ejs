@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Dashboard — GIET Bus Tracker</title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    .admin-container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: var(--space-lg) var(--space-md);
+    }
+    .badge-live {
+      background: rgba(52, 199, 89, 0.15);
+      color: var(--success-color);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 12px;
+    }
+    .badge-ended {
+      background: var(--bg-color);
+      color: var(--text-secondary);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 12px;
+    }
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+      margin-top: var(--space-sm);
+    }
+    .data-table th {
+      text-align: left;
+      padding: 10px 12px;
+      border-bottom: 1px solid rgba(0,0,0,0.06);
+      color: var(--text-secondary);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .data-table td {
+      padding: 12px;
+      border-bottom: 1px solid rgba(0,0,0,0.04);
+      vertical-align: middle;
+    }
+    .btn-table-action {
+      background: var(--bg-color);
+      color: var(--accent-color);
+      border: none;
+      border-radius: var(--radius-sm);
+      padding: 6px 12px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+    }
+    .btn-table-danger {
+      background: rgba(255, 59, 48, 0.1);
+      color: var(--danger-color);
+      border: none;
+      border-radius: var(--radius-sm);
+      padding: 6px 12px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="admin-container">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: var(--space-lg);">
+      <div style="display:flex; align-items:center; gap: 12px;">
+        <div class="app-icon" style="margin-bottom:0;">🛡️</div>
+        <div>
+          <h1 class="title-text" style="margin:0;">Admin Console</h1>
+          <span class="caption-text text-secondary">Logged in as <%= admin.email || 'Admin' %></span>
+        </div>
+      </div>
+      <div style="display:flex; gap: 12px;">
+        <a href="/" class="btn-table-action pressable">Role Home</a>
+        <a href="/auth/admin/login" class="btn-table-danger pressable">Logout</a>
+      </div>
+    </div>
+
+    <!-- Active Sessions Section -->
+    <div class="card" style="margin-bottom: var(--space-lg);">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: var(--space-sm);">
+        <h2 class="headline-text" style="margin:0;">Bus Sessions</h2>
+        <span class="caption-text text-secondary"><%= sessions.length %> total records</span>
+      </div>
+
+      <% if (!sessions || sessions.length === 0) { %>
+        <p class="caption-text text-secondary" style="padding: 16px 0;">No tracking sessions in database.</p>
+      <% } else { %>
+        <div style="overflow-x: auto;">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Route / Bus</th>
+                <th>Driver</th>
+                <th>Status</th>
+                <th>Created</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% sessions.forEach(function(s) { %>
+                <tr>
+                  <td>
+                    <strong><%= s.routeInfo || 'Campus Route' %></strong>
+                    <div class="caption-text" style="font-family: monospace; font-size: 11px;"><%= s.socketRoomId %></div>
+                  </td>
+                  <td>
+                    <%= (s.driver && s.driver.name) || 'Unknown Driver' %>
+                    <div class="caption-text" style="font-size: 11px;"><%= (s.driver && s.driver.email) || '' %></div>
+                  </td>
+                  <td>
+                    <% if (s.status === 'active') { %>
+                      <span class="badge-live">● LIVE</span>
+                    <% } else { %>
+                      <span class="badge-ended">ENDED</span>
+                    <% } %>
+                  </td>
+                  <td class="caption-text">
+                    <%= new Date(s.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) %>
+                  </td>
+                  <td>
+                    <div style="display: flex; gap: 6px; align-items: center;">
+                      <a href="/track/<%= s.socketRoomId %>" class="btn-table-action pressable" target="_blank">View Map</a>
+                      <% if (s.status === 'active') { %>
+                        <form method="POST" action="/admin/sessions/<%= s._id %>/end" style="margin:0;">
+                          <button type="submit" class="btn-table-danger pressable">End</button>
+                        </form>
+                      <% } %>
+                    </div>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      <% } %>
+    </div>
+
+    <!-- Registered Users Section -->
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: var(--space-sm);">
+        <h2 class="headline-text" style="margin:0;">Registered Users</h2>
+        <span class="caption-text text-secondary"><%= users.length %> registered accounts</span>
+      </div>
+
+      <% if (!users || users.length === 0) { %>
+        <p class="caption-text text-secondary" style="padding: 16px 0;">No registered users found.</p>
+      <% } else { %>
+        <div style="overflow-x: auto;">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Details</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% users.forEach(function(u) { %>
+                <tr>
+                  <td><strong><%= u.name %></strong></td>
+                  <td><%= u.email %></td>
+                  <td>
+                    <span style="text-transform: capitalize; font-weight: 600; color: <%= u.role === 'admin' ? 'var(--accent-color)' : (u.role === 'driver' ? '#FF9500' : 'var(--text-primary)') %>;">
+                      <%= u.role %>
+                    </span>
+                  </td>
+                  <td class="caption-text">
+                    <% if (u.role === 'student') { %>
+                      Roll: <%= u.rollNumber || 'N/A' %>
+                    <% } else if (u.role === 'driver') { %>
+                      Vehicle: <%= u.vehicle || 'N/A' %> | <%= u.phone || '' %>
+                    <% } else { %>
+                      Administrator
+                    <% } %>
+                  </td>
+                  <td>
+                    <% if (u.role !== 'admin') { %>
+                      <form method="POST" action="/admin/users/<%= u._id %>/delete" onsubmit="return confirm('Delete this user?');" style="margin:0;">
+                        <button type="submit" class="btn-table-danger pressable">Delete</button>
+                      </form>
+                    <% } else { %>
+                      <span class="caption-text text-secondary">Protected</span>
+                    <% } %>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      <% } %>
+    </div>
+  </div>
+</body>
+</html>

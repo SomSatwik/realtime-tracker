@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Student Signup</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <div class="container landing-page">
+    <div class="card">
+      <h1 class="title-text">Student Signup</h1>
+      <% if (typeof error !== 'undefined') { %>
+        <p style="color:red"><%= error %></p>
+      <% } %>
+      <form method="POST" action="/auth/student/signup">
+        <div class="input-group">
+          <label class="label-caps" for="name">Name</label>
+          <input id="name" name="name" class="apple-input" required />
+        </div>
+        <div class="input-group">
+          <label class="label-caps" for="email">Email</label>
+          <input id="email" type="email" name="email" class="apple-input" required />
+        </div>
+        <div class="input-group">
+          <label class="label-caps" for="password">Password</label>
+          <input id="password" type="password" name="password" class="apple-input" required />
+        </div>
+        <div class="input-group">
+          <label class="label-caps" for="rollNumber">Roll Number</label>
+          <input id="rollNumber" name="rollNumber" class="apple-input" required />
+        </div>
+        <button type="submit" class="btn-primary pressable">Sign Up</button>
+      </form>
+      <p class="caption-text text-secondary" style="margin-top:12px;">Already have an account? <a href="/auth/student/login">Login</a></p>
+    </div>
+  </div>
+</body>
+</html>

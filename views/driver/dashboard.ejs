@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Driver Dashboard — GIET Bus Tracker</title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <div class="container landing-page">
+    <div class="app-icon">🚍</div>
+    <h1 class="landing-title title-text">Driver Portal</h1>
+    <p class="landing-subtitle caption-text text-secondary">Manage your live broadcast session</p>
+
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: var(--space-md);">
+        <div>
+          <h2 class="headline-text" style="margin:0;">Driver Controls</h2>
+          <span class="caption-text text-secondary">Driver: <%= user.name || 'Driver' %></span>
+        </div>
+        <% if (activeSession) { %>
+          <span style="background: rgba(52, 199, 89, 0.15); color: var(--success-color); font-size:12px; font-weight:700; padding: 4px 10px; border-radius: 20px;">● LIVE</span>
+        <% } else { %>
+          <span style="background: var(--bg-color); color: var(--text-secondary); font-size:12px; font-weight:600; padding: 4px 10px; border-radius: 20px;">IDLE</span>
+        <% } %>
+      </div>
+
+      <% if (activeSession) { %>
+        <div style="background: var(--bg-color); border-radius: var(--radius-input); padding: 14px; margin-bottom: var(--space-md);">
+          <div class="label-caps" style="margin-bottom: 4px;">ACTIVE BROADCAST</div>
+          <p class="body-text" style="margin:0 0 4px; font-weight:600;"><%= activeSession.routeInfo || 'Campus Route' %></p>
+          <div class="caption-text" style="font-family: monospace; word-break: break-all;">Room: <%= activeSession.socketRoomId %></div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <a href="/driver/<%= activeSession.socketRoomId %>" class="btn-primary pressable" style="text-align: center; text-decoration: none; display: flex; align-items: center; justify-content: center; background-color: var(--accent-color);">
+            📡 Open Live Broadcast Map
+          </a>
+          <form method="POST" action="/driver/stop">
+            <button type="submit" class="btn-action pressable active" style="margin-bottom: 0;">Stop Sharing</button>
+          </form>
+        </div>
+      <% } else { %>
+        <form method="POST" action="/driver/start">
+          <div class="input-group">
+            <label class="label-caps" for="routeInfo">Assigned Route / Bus Name</label>
+            <input id="routeInfo" name="routeInfo" class="apple-input" placeholder="e.g. Bus 4 — Campus to Station" />
+          </div>
+          <button type="submit" class="btn-primary pressable">Start Broadcasting Session</button>
+        </form>
+      <% } %>
+
+      <hr class="sheet-divider" style="margin: var(--space-lg) 0 var(--space-md);" />
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <a href="/" class="caption-text text-secondary">Home</a>
+        <a href="/auth/driver/login" class="caption-text text-secondary" style="color: var(--danger-color);">Logout</a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

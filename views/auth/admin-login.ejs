@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Login — GIET Bus Tracker</title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <div class="container landing-page">
+    <div class="app-icon">🛡️</div>
+    <h1 class="landing-title title-text">Admin Portal</h1>
+    <p class="landing-subtitle caption-text text-secondary">Sign in to manage fleet and users</p>
+
+    <div class="card">
+      <h2 class="headline-text" style="margin-top:0; margin-bottom: var(--space-md);">Admin Login</h2>
+      <% if (typeof error !== 'undefined' && error) { %>
+        <p class="caption-text" style="color: var(--danger-color); margin-bottom: var(--space-md);"><%= error %></p>
+      <% } %>
+      <form method="POST" action="/auth/admin/login">
+        <div class="input-group">
+          <label class="label-caps" for="email">Admin Email</label>
+          <input id="email" type="email" name="email" class="apple-input" placeholder="admin@giet.edu" required />
+        </div>
+        <div class="input-group">
+          <label class="label-caps" for="password">Password</label>
+          <input id="password" type="password" name="password" class="apple-input" placeholder="••••••••" required />
+        </div>
+        <button type="submit" class="btn-primary pressable">Sign In</button>
+      </form>
+      <hr class="sheet-divider" style="margin: var(--space-md) 0;" />
+      <div style="text-align: center;">
+        <a href="/" class="caption-text text-secondary">← Back to Role Select</a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

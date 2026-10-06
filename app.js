@@ -9,6 +9,8 @@ const { v4: uuidv4 } = require('uuid');
 const connectDB = require('./config/db');
 const cookieParser = require('cookie-parser');
 const { authenticateJWT, authorizeRoles } = require('./utils/auth');
+const User = require('./models/User');
+const TrackingSession = require('./models/TrackingSession');
 
 // Use in-memory store for demo simplicity. In production, use Redis/MongoDB.
 const sessions = {};
@@ -19,6 +21,8 @@ connectDB().catch(err => {
   process.exit(1);
 });
 app.use(cookieParser());
+// expose sessions object for routes
+app.set('sessions', sessions);
 
 const server = http.createServer(app);
 const io = socketio(server);
@@ -36,14 +40,20 @@ app.set('io', io);
 // Register auth routes
 app.use('/auth/student', require('./routes/auth/student'));
 app.use('/auth/driver', require('./routes/auth/driver'));
-// (admin routes will be added later)
+app.use('/auth/admin', require('./routes/auth/admin'));
+// Register dashboards
+app.use('/student', require('./routes/student/dashboard'));
+app.use('/driver', require('./routes/driver/dashboard'));
+app.use('/admin', require('./routes/admin/dashboard'));
+
 
 
 // --- Routes ---
 
 // 1. Landing Page
 app.get("/", function (req, res) {
-  res.render("index");
+  // Render role selection page
+  res.render("role-select");
 });
 
 // 2. Create Session
@@ -77,31 +87,66 @@ app.get("/share/:id", (req, res) => {
   res.render("share", { sessionId });
 });
 
-// 4. Viewer Interface (Map) — EXISTING, DO NOT REMOVE
-app.get("/track/:id", (req, res) => {
+// 4. Viewer Interface (Map) — Supports both MongoDB TrackingSession and in-memory
+app.get("/track/:id", async (req, res) => {
   const sessionId = req.params.id;
-  if (!sessions[sessionId]) {
-    return res.status(404).send("Session not found");
+  // First check in-memory
+  if (sessions[sessionId]) {
+    return res.render("track", { sessionId });
   }
-  res.render("track", { sessionId });
+  // Check MongoDB
+  try {
+    const dbSession = await TrackingSession.findOne({ socketRoomId: sessionId }).populate('driver');
+    if (dbSession) {
+      // Ensure in-memory sessions dictionary has a reference for socket tracking
+      sessions[sessionId] = sessions[sessionId] || {
+        mobile: dbSession.routeInfo || (dbSession.driver && dbSession.driver.name) || 'Bus',
+        active: dbSession.status === 'active'
+      };
+      return res.render("track", { sessionId });
+    }
+  } catch (err) {
+    console.error("Error looking up session in DB:", err);
+  }
+  return res.status(404).send("Session not found");
 });
 
-// 5. Driver Broadcasting Page — NEW
-app.get("/driver/:id", (req, res) => {
+// 5. Driver Broadcasting Page — Supports both MongoDB and in-memory
+app.get("/driver/:id", async (req, res) => {
   const sessionId = req.params.id;
-  if (!sessions[sessionId]) {
-    return res.status(404).send("Session not found");
+  if (sessions[sessionId]) {
+    return res.render("driver", { sessionId, busName: sessions[sessionId].mobile });
   }
-  res.render("driver", { sessionId, busName: sessions[sessionId].mobile });
+  try {
+    const dbSession = await TrackingSession.findOne({ socketRoomId: sessionId }).populate('driver');
+    if (dbSession) {
+      const busName = dbSession.routeInfo || (dbSession.driver && dbSession.driver.name) || 'Driver Bus';
+      sessions[sessionId] = { mobile: busName, active: dbSession.status === 'active' };
+      return res.render("driver", { sessionId, busName });
+    }
+  } catch (err) {
+    console.error("Error looking up session for driver:", err);
+  }
+  return res.status(404).send("Session not found");
 });
 
-// 6. Student Tracking Page — NEW
-app.get("/student/:id", (req, res) => {
+// 6. Student Tracking Page — Supports both MongoDB and in-memory
+app.get("/student/:id", async (req, res) => {
   const sessionId = req.params.id;
-  if (!sessions[sessionId]) {
-    return res.status(404).send("Session not found");
+  if (sessions[sessionId]) {
+    return res.render("student", { sessionId, busName: sessions[sessionId].mobile });
   }
-  res.render("student", { sessionId, busName: sessions[sessionId].mobile });
+  try {
+    const dbSession = await TrackingSession.findOne({ socketRoomId: sessionId }).populate('driver');
+    if (dbSession) {
+      const busName = dbSession.routeInfo || (dbSession.driver && dbSession.driver.name) || 'Student Bus';
+      sessions[sessionId] = { mobile: busName, active: dbSession.status === 'active' };
+      return res.render("student", { sessionId, busName });
+    }
+  } catch (err) {
+    console.error("Error looking up session for student:", err);
+  }
+  return res.status(404).send("Session not found");
 });
 
 // 7. Admin Dashboard — NEW
